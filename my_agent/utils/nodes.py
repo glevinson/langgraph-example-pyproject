@@ -34,12 +34,22 @@ system_prompt = """Be a helpful assistant"""
 
 
 # Define the function that calls the model
-def call_model(state, config):
+def call_model(state, config=None):
     messages = state["messages"]
     # Fix for TypeError: ensure messages is not None before concatenation
     messages = messages or []
     messages = [{"role": "system", "content": system_prompt}] + messages
-    model_name = config.get("configurable", {}).get("model_name", "anthropic")
+
+    # Handle cases where config is None or doesn't have the expected structure
+    if config is None:
+        model_name = "anthropic"
+    else:
+        model_name = config.get("configurable", {}).get("model_name", "anthropic")
+
+    # Ensure model_name is not None
+    if model_name is None:
+        model_name = "anthropic"
+
     model = _get_model(model_name)
     response = model.invoke(messages)
     # We return a list, because this will get added to the existing list
